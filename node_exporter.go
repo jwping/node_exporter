@@ -70,18 +70,18 @@ func newHandler(includeExporterMetrics bool, maxRequests int, logger log.Logger)
 // ServeHTTP implements http.Handler.
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	filters := r.URL.Query()["collect[]"]
-	level.Debug(h.logger).Log("msg", "filters request:", "filters", filters)
+	level.Debug(h.logger).Log("msg", "collect query:", "filters", filters)
 
 	portList := r.URL.Query()["portlist"]
 	level.Debug(h.logger).Log("msg", "portList request:", "portList", filters)
 	if len(portList) != 0 {
-		collector.PortChecking = portList
+		collector.PORTChecking = portList
 	}
 
 	httpList := r.URL.Query()["httplist"]
 	level.Debug(h.logger).Log("msg", "httpList request:", "httpList", filters)
 	if len(httpList) != 0 {
-		collector.HttpChecking = httpList
+		collector.HTTPChecking = httpList
 	}
 
 	if len(filters) == 0 {

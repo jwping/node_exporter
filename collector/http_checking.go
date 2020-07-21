@@ -1,3 +1,16 @@
+// Copyright 2015 The Prometheus Authors
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package collector
 
 import (
@@ -15,7 +28,7 @@ const (
 )
 
 var (
-	HttpChecking []string
+	HTTPChecking []string
 )
 
 type httpcheckCollector struct {
@@ -23,7 +36,7 @@ type httpcheckCollector struct {
 }
 
 func init() {
-	registerCollector("httpcheck", defaultEnabled, NewHttpCheckCollector)
+	registerCollector(httpCheckSubsystem, defaultEnabled, NewHTTPCheckCollector)
 }
 
 func probeHTTP(target string) (float64, int) {
@@ -48,13 +61,14 @@ func (c *httpcheckCollector) Update(ch chan<- prometheus.Metric) error {
 
 	// registry := prometheus.NewRegistry()
 	portDesc := prometheus.NewDesc(
-		"http_connectivity_detection",
+		// "http_connectivity_detection",
+		prometheus.BuildFQName(namespace, httpCheckSubsystem, "StatusAndDelay"),
 		"Running on each node",
 		[]string{"http", "httpStatusCode"}, nil,
 	)
 	var wg sync.WaitGroup
-	wg.Add(len(HttpChecking))
-	for _, http := range HttpChecking {
+	wg.Add(len(HTTPChecking))
+	for _, http := range HTTPChecking {
 		go func(http string) {
 			runningTime, statusCode := probeHTTP(http)
 			ch <- prometheus.MustNewConstMetric(
@@ -70,6 +84,6 @@ func (c *httpcheckCollector) Update(ch chan<- prometheus.Metric) error {
 	return nil
 }
 
-func NewHttpCheckCollector(logger log.Logger) (Collector, error) {
+func NewHTTPCheckCollector(logger log.Logger) (Collector, error) {
 	return &httpcheckCollector{logger}, nil
 }

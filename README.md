@@ -29,10 +29,17 @@ curl -o node_exporter https://github.com/jwping/node_exporter/releases/download/
 
 #### 2.2.2 编译
 
+这里编译可以直接`go build`或者是使用官方的`make`
+
+> 注意，如果使用官方的方式来进行编译的话，需要安装有`golangci-lint`
+
 ```shell
 go get github.com/jwping/node_exporter
 cd ${GOPATH-$HOME/go}/src/github.com/prometheus/node_exporter
-go build
+
+# go build
+# make
+
 ./node_exporter <flags>
 ```
 
@@ -61,6 +68,8 @@ docker run -d \
 
 ### 3.1 支持端口连通性采集
 
+> 新增collector/port_checking.go
+
 需要在Prometheus上配置params：
 
 ```shell
@@ -80,6 +89,8 @@ node_export接收到附加`portlist`参数的请求后，会使用`probeTCP`函�
 
 ### 3.2 支持GET请求状态码和请求耗时采集
 
+> 新增http_checking.go
+
 基本同上，需要在Prometheus上配置params：
 
 ```shell
@@ -97,7 +108,15 @@ http://192.168.14.130:9100/metrics?httplist=https://www.baidu.com&&httplist=http
 
 node_export接收到附加`httplist`参数的请求后，会使用`probeHTTP`函数对目标端口的连通性进行采集，具体源码实现请参考[collector/http_checking.go#L29](https://github.com/jwping/node_exporter/blob/master/collector/http_checking.go#L29)行。
 
-### 3.3 返回数据
+### 3.3 修改node_export.go以支持上述修改
+
+```shell
+node_export.go
+
+// L75新增url参数解析，用于http、port参数获取
+```
+
+### 3.4 返回数据
 
 ```shell
 ...

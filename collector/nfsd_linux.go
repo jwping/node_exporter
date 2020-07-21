@@ -11,9 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build !nonfsd
+
 package collector
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -61,7 +64,7 @@ func NewNFSdCollector(logger log.Logger) (Collector, error) {
 func (c *nfsdCollector) Update(ch chan<- prometheus.Metric) error {
 	stats, err := c.fs.ServerRPCStats()
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			level.Debug(c.logger).Log("msg", "Not collecting NFSd metrics", "err", err)
 			return ErrNoData
 		}

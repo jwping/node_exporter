@@ -1,3 +1,16 @@
+// Copyright 2015 The Prometheus Authors
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package collector
 
 import (
@@ -15,7 +28,7 @@ const (
 )
 
 var (
-	PortChecking []string
+	PORTChecking []string
 )
 
 type portcheckCollector struct {
@@ -23,7 +36,7 @@ type portcheckCollector struct {
 }
 
 func init() {
-	registerCollector("portcheck", defaultEnabled, NewPortCheckCollector)
+	registerCollector(portCheckSubsystem, defaultEnabled, NewPortCheckCollector)
 }
 
 func probeTCP(ctx context.Context, target string) bool {
@@ -51,13 +64,14 @@ func (c *portcheckCollector) Update(ch chan<- prometheus.Metric) error {
 	defer cancel()
 	// registry := prometheus.NewRegistry()
 	portDesc := prometheus.NewDesc(
-		"port_connectivity_detection",
+		// "port_connectivity_detection",
+		prometheus.BuildFQName(namespace, portCheckSubsystem, "Status"),
 		"Running on each node",
 		[]string{"port"}, nil,
 	)
 	var wg sync.WaitGroup
-	wg.Add(len(PortChecking))
-	for _, port := range PortChecking {
+	wg.Add(len(PORTChecking))
+	for _, port := range PORTChecking {
 		go func(port string) {
 			if probeTCP(testCTX, port) {
 				ch <- prometheus.MustNewConstMetric(

@@ -25,6 +25,10 @@ import (
 	"strings"
 )
 
+var (
+	reParens = regexp.MustCompile(`\((.*)\)`)
+)
+
 func (c *meminfoCollector) getMemInfo() (map[string]float64, error) {
 	file, err := os.Open(procFilePath("meminfo"))
 	if err != nil {
@@ -39,7 +43,6 @@ func parseMemInfo(r io.Reader) (map[string]float64, error) {
 	var (
 		memInfo = map[string]float64{}
 		scanner = bufio.NewScanner(r)
-		re      = regexp.MustCompile(`\((.*)\)`)
 	)
 
 	for scanner.Scan() {
@@ -51,11 +54,11 @@ func parseMemInfo(r io.Reader) (map[string]float64, error) {
 		}
 		fv, err := strconv.ParseFloat(parts[1], 64)
 		if err != nil {
-			return nil, fmt.Errorf("invalid value in meminfo: %s", err)
+			return nil, fmt.Errorf("invalid value in meminfo: %w", err)
 		}
 		key := parts[0][:len(parts[0])-1] // remove trailing : from key
 		// Active(anon) -> Active_anon
-		key = re.ReplaceAllString(key, "_${1}")
+		key = reParens.ReplaceAllString(key, "_${1}")
 		switch len(parts) {
 		case 2: // no unit
 		case 3: // has unit, we presume kB

@@ -17,7 +17,9 @@
 package collector
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"regexp"
 
 	"github.com/go-kit/kit/log"
@@ -54,7 +56,10 @@ func NewPowerSupplyClassCollector(logger log.Logger) (Collector, error) {
 func (c *powerSupplyClassCollector) Update(ch chan<- prometheus.Metric) error {
 	powerSupplyClass, err := getPowerSupplyClassInfo(c.ignoredPattern)
 	if err != nil {
-		return fmt.Errorf("could not get power_supply class info: %s", err)
+		if errors.Is(err, os.ErrNotExist) {
+			return ErrNoData
+		}
+		return fmt.Errorf("could not get power_supply class info: %w", err)
 	}
 	for _, powerSupply := range powerSupplyClass {
 
@@ -184,7 +189,7 @@ func getPowerSupplyClassInfo(ignore *regexp.Regexp) (sysfs.PowerSupplyClass, err
 	powerSupplyClass, err := fs.PowerSupplyClass()
 
 	if err != nil {
-		return powerSupplyClass, fmt.Errorf("error obtaining power_supply class info: %s", err)
+		return powerSupplyClass, fmt.Errorf("error obtaining power_supply class info: %w", err)
 	}
 
 	for device := range powerSupplyClass {
